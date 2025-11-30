@@ -2,6 +2,7 @@ global _start
 
 %define SYS_WRITE 1
 %define SYS_OPEN 2
+%define SYS_CLOSE 3
 
 %define STDOUT 1
 
@@ -23,23 +24,16 @@ _start:
     mov rbx, rax
     xor rax, rax ; sys_read
     mov rsi, buf
-    mov rdx, 1
+    mov rdx, 4
     syscall
 
     ; check if we failed
     cmp rax, -1
-
-    ; close the fd
-    mov rax, rbx
-    syscall
-
-    ; on read failure
-    je exit 
+    je exit_close_fd
 
     mov rax, [buf]
     mov rcx, [ptr_table.size]
-    shr rcx, 3 ; equivalent to / 8
-    idiv ecx
+    idiv rcx
 
     ; save base pointer to length/string
     mov r12, [ptr_table + 8 * edx]
@@ -51,13 +45,18 @@ _start:
     mov rdx, [r12] ; length
     syscall
 
+exit_close_fd:
+    mov rax, SYS_CLOSE
+    mov rdi, rbx
+    syscall
+
 exit:
     mov rax, 60 ; exit
     xor rdi, rdi
     syscall
     
 section .bss
-buf: resb 1
+buf: resb 4
 
 section .rodata
 path: db "/dev/urandom", 0
@@ -77,32 +76,32 @@ dq eleventh
 dq twelveth
 dq thirteenth
 .size:
-dq $ - ptr_table ; size
+dq ($ - ptr_table) >> 3 ; size
 
 first: dq second - first - 8
-db "There are three states of being. Not knowing, action and completion.", 10, 9, "- (C) The Culf of Done Manifesto", 10
+db "There are three states of being. Not knowing, action and completion.", 10, 9, "- (C) The Cult of Done Manifesto", 10
 second: dq third - second - 8
-db "Accept that everything is a draft. It helps to get it done.", 10, 9, "- (C) The Culf of Done Manifesto", 10
+db "Accept that everything is a draft. It helps to get it done.", 10, 9, "- (C) The Cult of Done Manifesto", 10
 third: dq fourth - third - 8
-db "There is no editing stage.", 10, 9, "- (C) The Culf of Done Manifesto", 10
+db "There is no editing stage.", 10, 9, "- (C) The Cult of Done Manifesto", 10
 fourth: dq fifth - fourth - 8
-db "Pretending you know what you're doing is almost the same as knowing what you are doing, so just accept that you know what you're doing even if you don't and do it.", 10, 9, "- (C) The Culf of Done Manifesto", 10
+db "Pretending you know what you're doing is almost the same as knowing what you are doing, so just accept that you know what you're doing even if you don't and do it.", 10, 9, "- (C) The Cult of Done Manifesto", 10
 fifth: dq sixth - fifth - 8
-db "Banish procrastination. If you wait more than a week to get an idea done, abandon it.", 10, 9, "- (C) The Culf of Done Manifesto", 10
+db "Banish procrastination. If you wait more than a week to get an idea done, abandon it.", 10, 9, "- (C) The Cult of Done Manifesto", 10
 sixth: dq seventh - sixth - 8
-db "The point of being done is not to finish but to get other things done.", 10, 9, "- (C) The Culf of Done Manifesto", 10
+db "The point of being done is not to finish but to get other things done.", 10, 9, "- (C) The Cult of Done Manifesto", 10
 seventh: dq eighth - seventh - 8
-db "Once you're done you can throw it away.", 10, 9, "- (C) The Culf of Done Manifesto", 10
+db "Once you're done you can throw it away.", 10, 9, "- (C) The Cult of Done Manifesto", 10
 eighth: dq ninth - eighth - 8
-db "Laugh at perfection. It's boring and keeps you from being done.", 10, 9, "- (C) The Culf of Done Manifesto", 10
+db "Laugh at perfection. It's boring and keeps you from being done.", 10, 9, "- (C) The Cult of Done Manifesto", 10
 ninth: dq tenth - ninth - 8
-db "People without dirty hands are wrong. Doing something makes you right.", 10, 9, "- (C) The Culf of Done Manifesto", 10
+db "People without dirty hands are wrong. Doing something makes you right.", 10, 9, "- (C) The Cult of Done Manifesto", 10
 tenth: dq eleventh - tenth - 8
-db "Failure counts as done. So do mistakes.", 10, 9, "- (C) The Culf of Done Manifesto", 10
+db "Failure counts as done. So do mistakes.", 10, 9, "- (C) The Cult of Done Manifesto", 10
 eleventh: dq twelveth - eleventh - 8
-db "Destruction is a variant of done.", 10, 9, "- (C) The Culf of Done Manifesto", 10
+db "Destruction is a variant of done.", 10, 9, "- (C) The Cult of Done Manifesto", 10
 twelveth: dq thirteenth - twelveth - 8
-db "If you have an idea and publish it on the internet, that counts as a ghost of done.", 10, 9, "- (C) The Culf of Done Manifesto", 10
+db "If you have an idea and publish it on the internet, that counts as a ghost of done.", 10, 9, "- (C) The Cult of Done Manifesto", 10
 thirteenth: dq empty - thirteenth - 8
-db "Done is the engine of more.", 10, 9, "- (C) The Culf of Done Manifesto", 10
+db "Done is the engine of more.", 10, 9, "- (C) The Cult of Done Manifesto", 10
 empty:
